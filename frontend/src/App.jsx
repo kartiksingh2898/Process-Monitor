@@ -285,6 +285,7 @@ export default function App() {
 
   const [modalProc, setModalProc] = useState(null);
   const [modalDetailLoading, setModalDetailLoading] = useState(false);
+  const [killBusyPid, setKillBusyPid] = useState(null);
 
   const api = useMemo(() => axios.create({ baseURL: settings.apiBase }), [settings.apiBase]);
 
@@ -824,16 +825,22 @@ export default function App() {
   };
 
   const killProcess = async (p, treeOverride) => {
-    const tree = treeOverride ?? settings.killTree;
+    // Only omit the second arg to use settings.killTree; `false`/`true` are explicit (?? would treat false as "use default").
+    const tree = treeOverride === undefined ? settings.killTree : treeOverride;
     const msg = `Kill ${p.name} (PID ${p.pid})${tree ? ' and its children' : ''}?`;
     if (settings.confirmKill && !window.confirm(msg)) return;
+    setKillBusyPid(p.pid);
     try {
       await api.post(`/processes/kill/${p.pid}`, { force: settings.forceKill, tree });
       toast.success(`${settings.forceKill ? 'Force-killed' : 'Terminated'} ${p.name} (${p.pid})`);
       closeModal();
-      fetchTick();
+      requestAnimationFrame(() => {
+        fetchTick();
+      });
     } catch (err) {
       toast.error(formatApiError(err));
+    } finally {
+      setKillBusyPid(null);
     }
   };
 
@@ -1183,8 +1190,16 @@ export default function App() {
                     </td>
                     <td style={{ color: 'var(--c-muted)' }}>{p.username}</td>
                     <td onClick={(e) => e.stopPropagation()}>
-                      <button type="button" className="btn btn-sm btn-danger" onClick={() => killProcess(p, false)}>
-                        Kill
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-danger"
+                        disabled={killBusyPid != null}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          killProcess(p);
+                        }}
+                      >
+                        {killBusyPid === p.pid ? 'Killing…' : 'Kill'}
                       </button>
                     </td>
                   </tr>
@@ -1629,12 +1644,22 @@ export default function App() {
                 {modalDetailLoading ? 'Loading command line…' : modalProc.cmdline || '—'}
               </div>
               <div className="modal-actions">
-                <button type="button" className="btn btn-danger" onClick={() => killProcess(modalProc, false)}>
-                  ■ Kill Process
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  disabled={killBusyPid != null}
+                  onClick={() => killProcess(modalProc, false)}
+                >
+                  {killBusyPid === modalProc.pid ? 'Killing…' : '■ Kill Process'}
                 </button>
                 {settings.killTree && (
-                  <button type="button" className="btn btn-danger" onClick={() => killProcess(modalProc, true)}>
-                    Kill Tree
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    disabled={killBusyPid != null}
+                    onClick={() => killProcess(modalProc, true)}
+                  >
+                    {killBusyPid === modalProc.pid ? 'Killing…' : 'Kill Tree'}
                   </button>
                 )}
                 <button type="button" className="btn" onClick={closeModal}>
