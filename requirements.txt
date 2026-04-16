@@ -1,0 +1,7 @@
+# Process Manager — Python API (FastAPI + SQLite + psutil)
+fastapi>=0.109.0,<1.0.0
+uvicorn[standard]>=0.27.0,<1.0.0
+sqlalchemy[asyncio]>=2.0.0,<3.0.0
+aiosqlite>=0.19.0,<1.0.0
+psutil>=5.9.0,<8.0.0
+pydantic>=2.0.0,<3.0.0
