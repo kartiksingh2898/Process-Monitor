@@ -37,7 +37,7 @@ def _kill_tree_windows_taskkill(pid: int, force: bool) -> str:
         return f"Process {pid} {'killed' if force else 'terminated'}"
     if "not found" in combined or "not running" in combined:
         raise psutil.NoSuchProcess(pid)
-    if "access is denied" in combined or "could not be terminated" in combined:
+    if "access is denied" in combined:
         raise psutil.AccessDenied()
     raise RuntimeError((r.stderr or r.stdout or "").strip() or f"taskkill exited {r.returncode}")
 
@@ -80,7 +80,10 @@ async def kill_process(
     except psutil.NoSuchProcess:
         raise HTTPException(status_code=404, detail="Process not found")
     except psutil.AccessDenied as e:
-        raise HTTPException(status_code=403, detail=str(e))
+        detail = (str(e) or "").strip() or "Access denied (elevated processes may require running the API as administrator)"
+        raise HTTPException(status_code=403, detail=detail)
+    except subprocess.TimeoutExpired:
+        raise HTTPException(status_code=504, detail="Kill operation timed out")
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return {"message": msg}
@@ -93,4 +96,5 @@ async def get_one_process(pid: int):
     except psutil.NoSuchProcess:
         raise HTTPException(status_code=404, detail="Process not found")
     except psutil.AccessDenied as e:
-        raise HTTPException(status_code=403, detail=str(e))
+        detail = (str(e) or "").strip() or "Access denied (elevated processes may require running the API as administrator)"
+        raise HTTPException(status_code=403, detail=detail)

@@ -290,10 +290,14 @@ export default function App() {
   const api = useMemo(() => axios.create({ baseURL: settings.apiBase }), [settings.apiBase]);
 
   const pausedRef = useRef(paused);
+  const modalProcRef = useRef(null);
   const lastFetchErrToast = useRef(0);
   useEffect(() => {
     pausedRef.current = paused;
   }, [paused]);
+  useEffect(() => {
+    modalProcRef.current = modalProc;
+  }, [modalProc]);
 
   const sortSelectValue = useMemo(() => {
     if (sortKey === 'cpu_percent') return `cpu-${sortDir}`;
@@ -651,8 +655,8 @@ export default function App() {
     [api],
   );
 
-  const fetchTick = useCallback(async () => {
-    if (pausedRef.current) return;
+  const fetchTick = useCallback(async (opts) => {
+    if (!opts?.ignorePaused && pausedRef.current) return;
     try {
       const sysRes = await api.get('/system');
       setSystemData(sysRes.data);
@@ -833,9 +837,9 @@ export default function App() {
     try {
       await api.post(`/processes/kill/${p.pid}`, { force: settings.forceKill, tree });
       toast.success(`${settings.forceKill ? 'Force-killed' : 'Terminated'} ${p.name} (${p.pid})`);
-      closeModal();
+      if (modalProcRef.current?.pid === p.pid) closeModal();
       requestAnimationFrame(() => {
-        fetchTick();
+        fetchTick({ ignorePaused: true });
       });
     } catch (err) {
       toast.error(formatApiError(err));
@@ -875,6 +879,10 @@ export default function App() {
     const map = { pid: 'pid', name: 'name', cpu: 'cpu_percent', ram: 'memory_percent' };
     const active = sortKey === map[col];
     if (!active) return '↕';
+    // CPU/RAM: ▲ = highest usage first (desc), ▼ = lowest first (asc)
+    if (col === 'cpu' || col === 'ram') {
+      return sortDir === 'desc' ? '▲' : '▼';
+    }
     return sortDir === 'desc' ? '▼' : '▲';
   };
 
@@ -1091,10 +1099,10 @@ export default function App() {
           ))}
           <span className="sort-label">Sort:</span>
           <select className="sort-select" value={sortSelectValue} onChange={onSortSelect}>
-            <option value="cpu-desc">CPU ▼</option>
-            <option value="cpu-asc">CPU ▲</option>
-            <option value="ram-desc">RAM ▼</option>
-            <option value="ram-asc">RAM ▲</option>
+            <option value="cpu-desc">CPU ▲ (high first)</option>
+            <option value="cpu-asc">CPU ▼ (low first)</option>
+            <option value="ram-desc">RAM ▲ (high first)</option>
+            <option value="ram-asc">RAM ▼ (low first)</option>
             <option value="name-asc">Name A-Z</option>
             <option value="name-desc">Name Z-A</option>
             <option value="pid-asc">PID ▲</option>
@@ -1515,7 +1523,7 @@ export default function App() {
           <div className="setting-row">
             <div>
               <div className="setting-label">Kill Process Tree</div>
-              <div className="setting-desc">Also terminate child processes (when killing from modal)</div>
+              <div className="setting-desc">Also terminate child processes (used by table Kill; modal adds Kill Tree when on)</div>
             </div>
             <button
               type="button"
