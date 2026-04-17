@@ -180,6 +180,3 @@ For large changes, open an issue first to align on scope.
 ## License
 
 MIT — see [LICENSE](LICENSE)
-
-Only 5 things to replace before running:
-PlaceholderReplace withREPLACE_dashboard.pngyour dashboard screenshot filenameREPLACE_ui_firstload.pngyour UI/first-load screenshotREPLACE_settings.pngyour settings panel screenshotREPLACE_process_table.pngyour process table screenshotREPLACE_kill_dialog.pngyour kill dialog screenshotREPLACE_history_charts.pngyour history/charts screenshot
