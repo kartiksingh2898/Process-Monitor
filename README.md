@@ -1,139 +1,145 @@
-# Process Manager
+# process-monitor
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![React](https://img.shields.io/badge/React-18%2B-61DAFB?logo=react&logoColor=0b0f14) ![FastAPI](https://img.shields.io/badge/FastAPI-API-009688?logo=fastapi&logoColor=white) ![MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-A small **local process monitor**: live process list (CPU / RAM / status), system metrics, **CPU / RAM / GPU** history charts, and optional **SQLite-backed** history when the API is running.
+Local system and process monitor with a Python backend and React frontend.
+Runs on `127.0.0.1` only, with no cloud dependency.
+No telemetry, no account, no external data pipeline.
 
-- **Backend:** [FastAPI](https://fastapi.tiangolo.com/) + [psutil](https://github.com/giampaolo/psutil) + [SQLAlchemy](https://www.sqlalchemy.org/) (async SQLite).
-- **Frontend:** [React](https://react.dev/) + [Vite](https://vite.dev/) + [Chart.js](https://www.chartjs.org/).
+## Features
+| Area | What it includes |
+|---|---|
+| Process Table | Live rows with PID, process name, CPU%, RAM%, status, and user |
+| Search/Filter/Sort | Search plus filters; sorting by CPU, RAM, PID, and name |
+| Noise Reduction | Hides `System Idle Process` and unnamed process entries |
+| Process Control | Kill Process, Kill Tree, Force Kill, optional confirm dialog |
+| Windows Tree Kill | Uses `taskkill /T` path for process-tree termination |
+| System Metrics | Real-time CPU, RAM, network, and disk activity |
+| Hardware Context | Shows CPU, RAM, and GPU hardware names in UI |
+| Charts | Live and historical CPU/RAM/GPU with min/avg/max stats |
+| Chart Readability | End-point markers and current-value labels |
+| Export | CSV and JSON export for process and history views |
+| Persistence | SQLite history with 1–90 day retention window |
+| Data Hygiene | Automatic cleanup of expired snapshots |
+| Write Protection | Snapshot throttling to prevent DB overload |
 
-Everything talks to your machine over **`127.0.0.1`** — no cloud, no account.
+![Dashboard](./1.png)
 
----
+## Tech Stack
+| Layer | Technology |
+|---|---|
+| Backend | FastAPI + psutil + SQLAlchemy async + SQLite (`aiosqlite`) |
+| Frontend | React + Vite + Chart.js |
+| Launcher | `launch-process-manager.bat` (Windows) |
 
-## Prerequisites
+## Getting Started
+### Prerequisites
+- Python 3.10+
+- Node.js 18+
+- npm
 
-| Tool | Notes |
-|------|--------|
-| **Python 3.10+** | Required for the API. |
-| **Node.js 18+** (LTS recommended) | Required for the Vite dev UI (and `npm run build`). |
-
----
-
-## Windows: one-click launch
-
-Double-click **`launch-process-manager.bat`** in the repository root (or run it from a terminal). It will:
-
-1. Create **`venv`** only if it does not exist yet.
-2. Run **`pip install -r requirements.txt`** (quick when everything is already installed).
-3. Run **`npm install`** in **`frontend/`** only if **`frontend/node_modules`** is missing.
-4. Open **two** Command Prompt windows: **Process Manager - API** (Uvicorn) and **Process Manager - UI** (Vite).
-
-Close each window to stop that server. The UI is usually **http://localhost:5173**; the API is **http://127.0.0.1:8000**.
-
----
-
-## Python dependencies (`pip`)
-
-Install from the **repository root** (the folder that contains `backend/` and `frontend/`):
-
-```bash
+### Installation
+```powershell
+# Windows (PowerShell)
 python -m venv venv
-```
-
-**Windows**
-
-```powershell
 .\venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-**macOS / Linux**
-
 ```bash
+# macOS/Linux
+python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
-
-### What `requirements.txt` installs
-
-| Package | Role |
-|---------|------|
-| **fastapi** | HTTP API (`/processes`, `/system`, `/history`, …). |
-| **uvicorn[standard]** | ASGI server (run + reload in dev). |
-| **sqlalchemy[asyncio]** | Async ORM + queries for history (pulls **greenlet** where needed). |
-| **aiosqlite** | Async driver for SQLite (`sqlite+aiosqlite`). |
-| **psutil** | Process list, CPU/RAM, disk/network metrics. |
-| **pydantic** | Request/response models (used by FastAPI). |
-
----
-
-## Run the API (backend)
-
-From the **repository root**:
-
-**Windows**
-
-```powershell
-.\venv\Scripts\activate
-python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
-```
-
-**macOS / Linux**
-
-```bash
-source venv/bin/activate
-python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
-```
-
-- API: **http://127.0.0.1:8000**
-- Health check: **http://127.0.0.1:8000/** (JSON)
-
-On first startup, **`process_monitor.db`** is created next to `backend/` (project root) for saved history.
-
----
-
-## Run the UI (frontend)
-
-In a **second** terminal:
 
 ```bash
 cd frontend
 npm install
-npm run dev
 ```
 
-Open the URL Vite prints (usually **http://localhost:5173**).
+### Launch
+**Option A — Windows launcher**  
+Double-click `launch-process-manager.bat`.
 
-The UI defaults to **`http://127.0.0.1:8000`** for the API. Change it under **Settings** if your API runs elsewhere.
+1. Creates `venv` if missing
+2. Installs Python dependencies from `requirements.txt`
+3. Installs frontend dependencies if `frontend/node_modules` is missing
+4. Starts API and UI in separate terminal windows
 
-### Production build (optional)
+**Option B — Manual**
+```bash
+python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
+```
 
 ```bash
 cd frontend
-npm run build
-npm run preview
+npm run dev
 ```
 
----
+**Default URLs**
+- API: http://127.0.0.1:8000
+- UI: http://localhost:5173
 
-## GPU metrics (optional)
+![UI on first load](./2.png)
 
-On **Windows**, GPU usage is read from **NVIDIA** (`nvidia-smi`) when available, otherwise from **performance counters** (3D engine). If neither works, GPU charts may show gaps or “—”.
-
----
-
-## Project layout
-
-```
+## Project Structure
+```text
 process-monitor/
-├── backend/                      # FastAPI app (main, routers, scraper, DB)
-├── frontend/                     # Vite + React UI
-├── requirements.txt             # Python dependencies
-├── launch-process-manager.bat   # Windows: setup (if needed) + start API + UI
-└── process_monitor.db           # Created at runtime (history); safe to delete
+├── backend/
+│   ├── main.py                  # DB init + router mounting
+│   ├── scraper.py               # fast list + deep per-process detail
+│   ├── snapshots.py             # throttled snapshot writes
+│   ├── database.py              # async engine/session + schema init
+│   ├── models.py                # system_history model
+│   └── routers/
+│       ├── processes.py         # kill logic + error handling
+│       └── history.py           # date-range queries + retention
+├── frontend/
+│   └── src/
+│       ├── App.jsx              # UI, charts, process actions, settings
+│       └── index.css            # styling
+├── launch-process-manager.bat
+├── requirements.txt
+└── process_monitor.db
 ```
 
----
+## Configuration
+| Setting | Description |
+|---|---|
+| Refresh interval | Poll interval for system/process updates |
+| Max rows | Maximum process rows rendered in table |
+| Retention days | History retention window (1–90 days) |
+| Force kill | Uses hard kill instead of graceful terminate |
+| Kill tree | Includes child processes during kill operations |
+| Confirm kill | Shows confirmation prompt before kill actions |
+| API base URL | Overrides backend endpoint used by frontend |
+
+![Settings panel](./5.png)
+> Note: runs on 127.0.0.1 by default. Retention cleanup runs on snapshot writes.
+
+## API Overview
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/` | API status and version payload |
+| GET | `/system` | Real-time system metrics and throttled snapshot write |
+| GET | `/processes/` | Fast process list for table view |
+| GET | `/processes/{pid}` | Deep details for a single process |
+| POST | `/processes/kill/{pid}` | Kill process/tree with `force` and `tree` options |
+| GET | `/history/` | History points with optional date-range filters |
+| POST | `/history/retention` | Updates retention days (1–90) |
+
+## Screenshots
+![Process table](./2.png)
+![Kill dialog](./3.png)
+![History charts](./4.png)
+
+## Contributing
+1. Fork the repository
+2. Create a feature branch
+3. Test your changes locally
+4. Open a pull request with a clear summary
+
+For large changes, open an issue first to align scope.
 
 ## License
-
-Add a license file if you distribute this repo publicly.
+MIT — see [LICENSE](LICENSE)

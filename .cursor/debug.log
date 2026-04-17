@@ -1,7 +1,0 @@
-{"timestamp": 1776372720466, "message": "kill_route_enter", "data": {"pid": 999999991, "force": true, "tree": false}, "hypothesisId": "H4", "location": "processes.py:kill_process"}
-{"timestamp": 1776372720468, "message": "kill_sync_enter", "data": {"pid": 999999991, "force": true, "tree": false, "platform": "win32"}, "hypothesisId": "H4", "location": "processes.py:_kill_process_sync"}
-{"timestamp": 1776372720469, "message": "kill_route_nosuch", "data": {"pid": 999999991}, "hypothesisId": "H1", "location": "processes.py:kill_process"}
-{"timestamp": 1776372720469, "message": "kill_route_enter", "data": {"pid": 999999991, "force": true, "tree": true}, "hypothesisId": "H4", "location": "processes.py:kill_process"}
-{"timestamp": 1776372720470, "message": "kill_sync_enter", "data": {"pid": 999999991, "force": true, "tree": true, "platform": "win32"}, "hypothesisId": "H4", "location": "processes.py:_kill_process_sync"}
-{"timestamp": 1776372720511, "message": "taskkill_nonzero", "data": {"pid": 999999991, "returncode": 1, "snippet": "ERROR: Access denied\n\n"}, "hypothesisId": "H1", "location": "processes.py:_kill_tree_windows_taskkill"}
-{"timestamp": 1776372720512, "message": "kill_route_access_denied", "data": {"pid": 999999991, "detail_repr": "'ERROR: Access denied (pid=999999991)'"}, "hypothesisId": "H2", "location": "processes.py:kill_process"}
