@@ -103,6 +103,7 @@ npm run dev
 ---
 
 ## Project Structure
+```text
 process-monitor/
 ├── backend/
 │   ├── main.py                  # DB init + router mounting
@@ -120,6 +121,7 @@ process-monitor/
 ├── launch-process-manager.bat
 ├── requirements.txt
 └── process_monitor.db
+```
 
 ---
 
