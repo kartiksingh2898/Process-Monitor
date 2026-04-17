@@ -98,7 +98,7 @@ npm run dev
 - API: http://127.0.0.1:8000
 - UI: http://localhost:5173
 
-![UI on first load](Screenshot/ProcessTable.png)
+![UI on first load](Screenshot/Process.png)
 
 ---
 
@@ -137,7 +137,7 @@ process-monitor/
 | Confirm kill | Shows confirmation prompt before kill actions |
 | API base URL | Overrides backend endpoint used by frontend |
 
-![Settings panel](Screenshot/Settings.png)
+![Settings panel](Screenshot/setting.png)
 
 > Runs on `127.0.0.1` by default. Retention cleanup runs automatically on snapshot writes.
 
@@ -159,9 +159,10 @@ process-monitor/
 
 ## Screenshots
 
-![Process table](Screenshot/ProcessTable.png)
-![Kill dialog](Screenshot/KillDialog.png)
-![History charts](Screenshot/HistoryCharts.png)
+![Process table](Screenshot/Process.png)
+![Kill dialog](Screenshot/killprocess.png)
+![History charts](Screenshot/History.png)
+![Database](Screenshot/database.png)
 
 ---
 
